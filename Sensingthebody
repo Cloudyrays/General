@@ -1,0 +1,61 @@
+//Sophia Niergarth
+//February 9th, 2016
+//Wearable Computing
+//Sensing the Body Assignment: Envious Wristband
+
+//Some of the code was adapted from: "Example Sound Level Sketch", url:https://learn.adafruit.com/adafruit-microphone-amplifier-breakout/measuring-sound-levels
+//and "Workshop RGBled" from the class files
+
+int lightPin = A4;
+int lightData;
+
+const int sampleWindow = 50; //(20Hz)
+unsigned int sample;
+
+float delayAmount;
+
+void setup() {
+    pinMode(lightPin, OUTPUT);
+    Serial.begin(9600);
+}
+
+void loop () {
+   unsigned long startMillis= millis();
+   unsigned int peakToPeak = 0;
+ 
+   unsigned int signalMax = 0;
+   unsigned int signalMin = 1024;
+   
+   while (millis() - startMillis < sampleWindow)
+   {
+      sample = analogRead(A3);
+      if (sample < 1024)
+      {
+         if (sample > signalMax)
+         {
+            signalMax = sample;
+         }
+         else if (sample < signalMin)
+         {
+            signalMin = sample;
+         }
+      }
+   }
+   peakToPeak = signalMax - signalMin;
+   double volts = (peakToPeak * 3.3) / 1024;
+ 
+  Serial.println(volts);                            //mostly just for testing purposes
+  
+  lightData = int(map(volts, 0, 0.1, 0, 255));
+  //analogWrite(lightPin, 255-lightData);
+  //delayAmount = map(volts, 0.0, 0.5, 100, 800);
+                                                    //for some reason, mapping isn't working
+  delayAmount = constrain((volts*1000), 0, 1000);   //constraining the delay so that there aren't any crazy long pauses
+  Serial.println(delayAmount);
+  
+  analogWrite(lightPin, 200);
+  delay(delayAmount);
+  analogWrite(lightPin, 0);
+  delay(delayAmount);
+  
+}
