@@ -1,0 +1,93 @@
+//Sophia Niergarth
+//February 23rd, 2016
+//Wearable Computing
+//Actuators Project: Flashes in the Dark
+
+int gPin = A3;
+int bPin = A4;
+int rPin = A5;
+
+int bottomSwitchPin = 11;
+int middleSwitchPin = 10;
+int topSwitchPin = 9;
+
+boolean bSR;                                       //bottom switch input variable
+boolean mSR;                                       //middle ""
+boolean tSR;                                       //top ""
+
+int timeRecord;
+boolean code1;
+boolean code2;
+boolean code3;
+
+void setup() {
+ pinMode(bottomSwitchPin, INPUT_PULLUP);
+ pinMode(middleSwitchPin, INPUT_PULLUP);
+ pinMode(topSwitchPin, INPUT_PULLUP);
+
+}
+
+void loop() {
+  if (digitalRead(bottomSwitchPin) == HIGH) {
+   bSR = true; 
+  } else {
+    bSR = false;
+  }
+  if (digitalRead(middleSwitchPin) == HIGH) {
+   mSR = true; 
+  } else {
+    mSR = false;
+  }
+  if (digitalRead(topSwitchPin) == HIGH) {
+   tSR = true; 
+  } else {
+    tSR = false;
+  }
+  
+                                          //this top bit is kind of redundant, but it makes it easier to add functionality later
+  
+  if (bSR == true) {                      //if bottom switch is pressed, make blue light
+   analogWrite(bPin, 255); 
+   if (code1 == false) {
+   timeRecord = millis();
+   code1 = true;
+   }
+  } else {
+   analogWrite(bPin, 0); 
+  }
+  
+  if (mSR == true) {                      //if middle switch is pressed, make yellow light
+   analogWrite(rPin, 255); 
+   analogWrite(gPin, 255); 
+   if ((millis() - timeRecord < 20000) && code2 == true && code3 == false) {
+    code3 == true;                                                             //win state
+    analogWrite(bPin, 255);
+    delay(500);
+    analogWrite(bPin, 0);
+    delay(500);
+    analogWrite(bPin, 255);
+    delay(500);
+    analogWrite(bPin, 0);
+   }
+  } else {
+   analogWrite(rPin, 0); 
+   analogWrite(gPin, 0); 
+  }
+  
+  if (tSR == true) {                      //if top switch is pressed, make green light
+   analogWrite(gPin, 200); 
+   if ((millis() - timeRecord < 20000) && code1 == true && code2 == false) {
+    code2 == true; 
+    timeRecord = millis();
+   }
+  } else {
+   analogWrite(gPin, 0); 
+  }
+  
+  if (code1 == true && (millis() - timeRecord > 60000)) {    //reset code detector if too much time has passed
+   code1 == false;
+   code2 == false;
+   code3 == false; 
+  }
+  
+}
