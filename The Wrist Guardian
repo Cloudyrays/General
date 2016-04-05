@@ -1,0 +1,118 @@
+//Sophia Niergarth
+//April 5th, 2016
+//Wearable Computing
+//Final Assignment: The Wrist Guardian
+
+#include <Metro.h> //timer library
+
+int buzzer = 5; //buzzer pin
+
+float stretch;  //for holding raw stretch data
+int stretchCounter; //for counting up to 25 stretches
+float overAllStretch;  //for counting the over-all number of stretches since start-up
+float previousStretch; //for finding changes in stretch data over time
+
+
+boolean feedback = true; //the code for which this is used is currently deactivated, but this would be for toggling buzz feedback
+
+int stretchScore; //the average stretches per minute
+
+Metro seconds = Metro(2000); //set interval to 2 seconds (originally set to 1 second)
+
+
+void setup() {
+  
+  Serial.begin(9600);
+  pinMode(buzzer, OUTPUT);
+  
+}
+
+void loop() {
+  
+  stretch = analogRead(A5);    //get stretch data from pin
+  
+  //for finding thresholds:
+  //Serial.println("Stretch: ");
+  //Serial.print(stretch);
+  
+  //tested thresholds:
+  //660-690 = fairly relaxed
+  //650-630 = stretched
+  //change of 20 or more seems significant
+  
+  if(stretch < 650 && (seconds.check() == 1)) { //for recording stretches
+   
+   stretchCounter +=1;
+   overAllStretch +=1;
+   
+   //For debugging:
+   //Serial.println("YOU STRETCHED!");
+   //Serial.println("Stretches: ");
+   //Serial.print(stretchCounter);
+   
+   delay(200);
+  }
+  
+  
+  if(stretchCounter == 10 || stretchCounter == 15 || stretchCounter == 20) {  //every five stretches, give two small buzzes 
+     
+    if (feedback == true) {
+     digitalWrite(buzzer, HIGH);
+     delay(200);
+     digitalWrite(buzzer, LOW); 
+     delay(200);
+    }
+     
+     stretchCounter +=1; //this is to stop the buzzer after two buzzes
+     
+     //stretchCounter = 0;
+  }
+  
+  if(stretchCounter >= 25) { //every 25 stretches, give  two longer buzzes
+    
+    if (feedback == true) {
+     digitalWrite(buzzer, HIGH);
+     delay(500);
+     digitalWrite(buzzer, LOW); 
+     delay(200);
+     digitalWrite(buzzer, HIGH);
+     delay(500);
+     digitalWrite(buzzer, LOW); 
+     delay(200);
+    }
+     
+     stretchCounter = 0; //reset the counter
+     
+     
+  }
+  
+  //The code below is an alternate way for the user to interact with the glove- they can turn buzz feedback on and off (while still recording stretches)
+  
+  /*if(stretch >680 && feedback == true && previousStretch <= 680) {
+       feedback = false;
+     } else if (stretch >680 && feedback == false && previousStretch <= 680) {
+       feedback = true; 
+     }*/
+     
+     
+  if (stretch >680 && previousStretch <= 680) {              //This code allows the user to interact with the glove by calculating their stretch score
+    stretchScore = (overAllStretch/(millis()/6000));
+    Serial.println("Stretch Score: ");
+    Serial.print(stretchScore);
+    
+    for(int i = 0; i < stretchScore; i++) {                  //This code communicates the score with buzzes
+     digitalWrite(buzzer, HIGH);
+     delay(200);
+     digitalWrite(buzzer, LOW);
+     delay(100); 
+    }
+  }
+     
+   
+  //For debugging:
+  //Serial.println("Feedback?");
+  //Serial.println(feedback);
+  
+  previousStretch = stretch;
+  delay(50);
+}
